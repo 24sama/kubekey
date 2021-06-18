@@ -53,6 +53,8 @@ spec:
     - node1
     - node2
   controlPlaneEndpoint:
+    # Internal load balancers for apiservers
+    internalLoadBalancerEnabled: false
     domain: lb.kubesphere.local
     address: ""
     port: 6443
