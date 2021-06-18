@@ -96,7 +96,7 @@ func GenerateKubevipManifest(mgr *manager.Manager, itfName string) (string, erro
 
 // InstallKubevip is used to install a load balancer for creating highly available clusters
 func InstallKubevip(mgr *manager.Manager, node *kubekeyapiv1alpha1.HostCfg) error {
-	itfName, err := GetInterfaceName(node)
+	itfName, err := GetInterfaceName(mgr, node)
 	if err != nil {
 		return errors.Wrap(errors.WithStack(err), fmt.Sprintf("Faield to get host [%s] interface: %s", node.Name, err))
 	}
@@ -124,15 +124,14 @@ func InstallKubevip(mgr *manager.Manager, node *kubekeyapiv1alpha1.HostCfg) erro
 	return nil
 }
 
-func GetInterfaceName(node *kubekeyapiv1alpha1.HostCfg) (string, error) {
-	output, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("ip route | grep %s | awk -F '[ \\t*]' '{gsub(/\"/,\"\");for(i=0;i++<NF;)if($i==\"dev\")print $++i}'", node.InternalAddress)).CombinedOutput()
+func GetInterfaceName(mgr *manager.Manager, node *kubekeyapiv1alpha1.HostCfg) (string, error) {
+	output, err := mgr.Runner.ExecuteCmd(fmt.Sprintf("ip route | grep %s | awk -F '[ \\t*]' '{gsub(/\"/,\"\");for(i=0;i++<NF;)if($i==\"dev\")print $++i}'", node.InternalAddress), 2, false)
 	if err != nil {
-		fmt.Println(string(output))
+		fmt.Println(output)
 		return "", err
 	}
-
-	outputArr := strings.Split(strings.TrimSpace(string(output)), "\n")
-	if len(outputArr) >= 1 {
+	outputArr := strings.Split(strings.TrimSpace(output), "\n")
+	if len(outputArr) >= 1 && outputArr[0] != "" {
 		return outputArr[0], nil
 	} else {
 		return "", errors.New(fmt.Sprintf("get cmd output err: %s", output))
@@ -141,13 +140,16 @@ func GetInterfaceName(node *kubekeyapiv1alpha1.HostCfg) (string, error) {
 
 // CheckKubevip is used to check a internal load balancer. Check if the kubevip manifests exists in all master nodes.
 func CheckKubevip(mgr *manager.Manager, node *kubekeyapiv1alpha1.HostCfg) error {
-	if util.IsExist("/etc/kubernetes/manifests/kubevip.yaml") {
-		fmt.Printf("[%s] kubevip manifest already exists.\n", node.Name)
-	} else {
-		fmt.Printf("[%s] kubevip manifest will be create.\n", node.Name)
-		if err := InstallKubevip(mgr, node); err != nil {
-			return err
+	out, err := mgr.Runner.ExecuteCmd("ls /etc/kubernetes/manifests/kubevip.yaml", 1, false)
+	if err != nil {
+		if strings.Contains(out, "No such file or directory") {
+			fmt.Printf("[%s] kubevip manifest will be create.\n", node.Name)
+			if err := InstallKubevip(mgr, node); err != nil {
+				return err
+			}
 		}
+	} else {
+		fmt.Printf("[%s] kubevip manifest already exists.\n", node.Name)
 	}
 	return nil
 }
