@@ -48,12 +48,18 @@ spec:
       value: "true"
     - name: vip_interface
       value: {{ .Interface }}
+    - name: port
+      value: "6443"
     - name: vip_cidr
       value: "32"
     - name: cp_enable
       value: "true"
     - name: cp_namespace
       value: kube-system
+    - name: vip_ddns
+      value: "false"
+    - name: svc_enable
+      value: "true"
     - name: vip_leaderelection
       value: "true"
     - name: vip_leaseduration
@@ -90,6 +96,7 @@ func GenerateKubevipManifest(mgr *manager.Manager, itfName string) (string, erro
 	return util.Render(kubevipTemlate, util.Data{
 		"Interface":    itfName,
 		"VIP":          mgr.Cluster.ControlPlaneEndpoint.Address,
+		"Port":         mgr.Cluster.ControlPlaneEndpoint.Port,
 		"KubevipImage": preinstall.GetImage(mgr, "kubevip").ImageName(),
 	})
 }

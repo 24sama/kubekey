@@ -75,7 +75,7 @@ func GetImage(mgr *manager.Manager, name string) images.Image {
 		"provisioner-localpv": {RepoAddr: mgr.Cluster.Registry.PrivateRegistry, Namespace: "openebs", Repo: "provisioner-localpv", Tag: "2.9.0", Group: kubekeyapiv1alpha1.Worker, Enable: false},
 		"linux-utils":         {RepoAddr: mgr.Cluster.Registry.PrivateRegistry, Namespace: "openebs", Repo: "linux-utils", Tag: "2.9.0", Group: kubekeyapiv1alpha1.Worker, Enable: false},
 		// load balancer
-		"kubevip": {RepoAddr: mgr.Cluster.Registry.PrivateRegistry, Namespace: "plndr", Repo: "kube-vip", Tag: "0.3.1", Group: kubekeyapiv1alpha1.Master, Enable: true},
+		"kubevip": {RepoAddr: mgr.Cluster.Registry.PrivateRegistry, Namespace: "plndr", Repo: "kube-vip", Tag: "v0.3.5", Group: kubekeyapiv1alpha1.Master, Enable: true},
 	}
 
 	image = ImageList[name]
