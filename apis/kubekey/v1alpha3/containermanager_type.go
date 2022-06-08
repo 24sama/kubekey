@@ -16,10 +16,16 @@
 
 package v1alpha3
 
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ContainerManager defines the desired state of ContainerManager
 type ContainerManager struct {
+	metav1.TypeMeta `json:",inline"`
+
 	// CRISocket is used to connect an existing CRIClient.
 	// +optional
 	CRISocket *string `json:"criSocket,omitempty"`

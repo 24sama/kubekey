@@ -31,6 +31,12 @@ const (
 
 	// ExcludeNodeDrainingAnnotation annotation explicitly skips node draining if set.
 	ExcludeNodeDrainingAnnotation = "machine.kubekey.kubesphere.io/exclude-node-draining"
+
+	// MachineSetLabelName is the label set on machines if they're controlled by MachineSet.
+	MachineSetLabelName = "kubekey.kubesphere.io/set-name"
+
+	// MachineDeploymentLabelName is the label set on machines if they're controlled by MachineDeployment.
+	MachineDeploymentLabelName = "kubekey.kubesphere.io/deployment-name"
 )
 
 // MachineSpec defines the desired state of Machine
@@ -53,6 +59,15 @@ type MachineSpec struct {
 
 	// Auth is the SSH authentication information of the machine.
 	Auth Auth `json:"auth,omitempty"`
+
+	// Bootstrap is a reference to a local struct which encapsulates
+	// fields to configure the Machine’s bootstrapping mechanism.
+	Bootstrap Bootstrap `json:"bootstrap"`
+
+	// Version defines the desired Kubernetes version.
+	// This field is meant to be optionally used by bootstrap providers.
+	// +optional
+	Version *string `json:"version,omitempty"`
 
 	// ContainerManager is the container manager of the machine.
 	ContainerManager ContainerManager `json:"containerManager,omitempty"`
@@ -174,6 +189,21 @@ func (m *MachineStatus) GetTypedPhase() MachinePhase {
 	default:
 		return MachinePhaseUnknown
 	}
+}
+
+// Bootstrap encapsulates fields to configure the Machine’s bootstrapping mechanism.
+type Bootstrap struct {
+	// ConfigRef is a reference to a bootstrap provider-specific resource
+	// that holds configuration details. The reference is optional to
+	// allow users/operators to specify Bootstrap.DataSecretName without
+	// the need of a controller.
+	// +optional
+	ConfigRef *corev1.ObjectReference `json:"configRef,omitempty"`
+
+	// DataSecretName is the name of the secret that stores the bootstrap data script.
+	// If nil, the Machine should remain in the Pending state.
+	// +optional
+	DataSecretName *string `json:"dataSecretName,omitempty"`
 }
 
 // +genclient

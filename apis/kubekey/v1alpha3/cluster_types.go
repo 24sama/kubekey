@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha3
 
 import (
+	"fmt"
+	"net"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -94,6 +96,21 @@ type ControlPlaneEndpoint struct {
 
 	// Port defines the control plane api endpoint port.
 	Port int `json:"port,omitempty"`
+}
+
+// IsZero returns true if both host and port are zero values.
+func (c ControlPlaneEndpoint) IsZero() bool {
+	return c.Address == "" && c.Port == 0
+}
+
+// IsValid returns true if both host and port are non-zero values.
+func (c ControlPlaneEndpoint) IsValid() bool {
+	return c.Address != "" && c.Port != 0
+}
+
+// String returns a formatted version HOST:PORT of this APIEndpoint.
+func (c ControlPlaneEndpoint) String() string {
+	return net.JoinHostPort(c.Address, fmt.Sprintf("%d", c.Port))
 }
 
 type Network struct {

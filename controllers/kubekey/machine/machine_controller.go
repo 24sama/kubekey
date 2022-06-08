@@ -65,9 +65,11 @@ var (
 	errControlPlaneIsBeingDeleted = errors.New("control plane is being deleted")
 )
 
-//+kubebuilder:rbac:groups=kubekey.kubesphere.io,resources=machines,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=kubekey.kubesphere.io,resources=machines/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=kubekey.kubesphere.io,resources=machines/finalizers,verbs=update
+//+kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;patch
+//+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch
+//+kubebuilder:rbac:groups=core,resources=nodes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=kubekey.kubesphere.io,resources=machines;machines/status;machines/finalizers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;list;watch
 
 // MachineReconciler reconciles a Machine object
 type MachineReconciler struct {

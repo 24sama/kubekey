@@ -17,14 +17,17 @@ limitations under the License.
 package collections
 
 import (
-	"github.com/kubesphere/kubekey/util"
-	"github.com/kubesphere/kubekey/util/conditions"
+	"github.com/blang/semver"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kubesphere/kubekey/util"
+	"github.com/kubesphere/kubekey/util/conditions"
+
 	kubekeyv1 "github.com/kubesphere/kubekey/apis/kubekey/v1alpha3"
+	controlplanev1 "github.com/kubesphere/kubekey/controlplane/kubeadm/api/v1alpha1"
 )
 
 // Func is the functon definition for a filter.
@@ -165,4 +168,31 @@ func ControlPlaneSelectorForCluster(clusterName string) labels.Selector {
 		must(labels.NewRequirement(kubekeyv1.ClusterLabelName, selection.Equals, []string{clusterName})),
 		must(labels.NewRequirement(kubekeyv1.MachineControlPlaneLabelName, selection.Exists, []string{})),
 	)
+}
+
+// WithVersion returns a filter to find machine that have a non empty and valid version.
+func WithVersion() Func {
+	return func(machine *kubekeyv1.Machine) bool {
+		if machine == nil {
+			return false
+		}
+		if machine.Spec.Version == nil {
+			return false
+		}
+		if _, err := semver.ParseTolerant(*machine.Spec.Version); err != nil {
+			return false
+		}
+		return true
+	}
+}
+
+// HealthyAPIServer returns a filter to find all machines that have a MachineAPIServerPodHealthyCondition
+// set to true.
+func HealthyAPIServer() Func {
+	return func(machine *kubekeyv1.Machine) bool {
+		if machine == nil {
+			return false
+		}
+		return conditions.IsTrue(machine, controlplanev1.MachineAPIServerPodHealthyCondition)
+	}
 }

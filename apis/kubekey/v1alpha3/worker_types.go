@@ -38,7 +38,7 @@ type WorkerSpec struct {
 	// KubeadmConfigTemplateSpec is a KubeadmConfigTemplateSpec
 	// to use for joining machines to the cluster.
 	// It will deepmerge with the control plane KubeadmConfigTemplateSpec.
-	KubeadmConfigTemplateSpec *KubeadmConfigTemplateSpec `json:"kubeadmConfigTemplateSpec"`
+	//KubeadmConfigTemplateSpec *bootstrapv1.KubeadmConfigTemplateSpec `json:"kubeadmConfigTemplateSpec"`
 }
 
 // KubeadmWorkerMachineTemplate defines the template for Machines

@@ -16,10 +16,16 @@
 
 package v1alpha3
 
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // RegistryConfig is the configuration for a cluster registry
 type RegistryConfig struct {
+	metav1.TypeMeta `json:",inline"`
+
 	// PrivateRegistry defines the private registry address of ContainerManager.
 	PrivateRegistry string `json:"privateRegistry"`
 

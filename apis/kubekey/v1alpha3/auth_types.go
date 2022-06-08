@@ -18,12 +18,16 @@ package v1alpha3
 
 import (
 	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Auth contains the SSH authentication configuration for machines.
 type Auth struct {
+	metav1.TypeMeta `json:",inline"`
+
 	// User is the username for SSH authentication.
 	User string `yaml:"user,omitempty" json:"user,omitempty"`
 

@@ -1,0 +1,6 @@
+apiVersion: bootstrap.kubekey.kubesphere.io/v1alpha1
+kind: KubeadmConfigTemplate
+metadata:
+  name: kubeadmconfigtemplate-sample
+spec:
+  # TODO(user): Add fields here

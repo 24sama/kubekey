@@ -1,0 +1,24 @@
+# permissions for end users to edit kubeadmcontrolplanetemplates.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubeadmcontrolplanetemplate-editor-role
+rules:
+- apiGroups:
+  - controlplane.controlplane.kubekey.kubesphere.io
+  resources:
+  - kubeadmcontrolplanetemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - controlplane.controlplane.kubekey.kubesphere.io
+  resources:
+  - kubeadmcontrolplanetemplates/status
+  verbs:
+  - get
