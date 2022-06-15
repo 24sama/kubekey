@@ -253,7 +253,7 @@ binary:
 # build the binary file of kk
 kk: fmt vet
 	GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 GO111MODULE=on go build $(BUILDFLAGS) -ldflags '$(LDFLAGS)' \
-	-o bin/$(GOOS)/$(GOARCH)/kk ./cmd/main.go;
+	-o bin/$(GOOS)/$(GOARCH)/kk ./cmd/kk/main.go;
 
 go-releaser-test:
 	goreleaser release --rm-dist --skip-publish --snapshot

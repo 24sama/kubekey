@@ -21,10 +21,10 @@ import (
 	"context"
 	time "time"
 
-	kubekeyv1alpha2 "github.com/kubesphere/kubekey/apis/kubekey/v1alpha2"
 	versioned "github.com/kubesphere/kubekey/clients/clientset/versioned"
 	internalinterfaces "github.com/kubesphere/kubekey/clients/informers/externalversions/internalinterfaces"
 	v1alpha2 "github.com/kubesphere/kubekey/clients/listers/kubekey/v1alpha2"
+	kubekeyv1alpha2 "github.com/kubesphere/kubekey/cmd/kk/api/v1alpha2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"

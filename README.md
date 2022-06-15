@@ -98,7 +98,7 @@ KubeKey can install Kubernetes and KubeSphere together. The dependency that need
 * Binary downloads of the KubeKey also can be found on the [Releases page](https://github.com/kubesphere/kubekey/releases).
   Unpack the binary and you are good to go!
 
-* Build Binary from Source Code
+* Build Binary from Source Code master branch. The master branch is where development happens. All the latest and greatest code, including breaking changes, happens on master.
     ```shell script
     git clone https://github.com/kubesphere/kubekey.git
     cd kubekey
