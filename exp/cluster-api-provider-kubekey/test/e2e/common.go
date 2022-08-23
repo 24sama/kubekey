@@ -19,7 +19,7 @@ package e2e
 import (
 	"fmt"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 )
 
 // Test suite constants for e2e config variables.

@@ -17,63 +17,77 @@ limitations under the License.
 package controllers
 
 import (
-	"path/filepath"
+	"context"
+	"fmt"
+	"os"
 	"testing"
+	"time"
 
-	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	"sigs.k8s.io/cluster-api/controllers/remote"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 
 	infrav1 "github.com/kubesphere/kubekey/exp/cluster-api-provider-kubekey/api/v1beta1"
-	//+kubebuilder:scaffold:imports
+	"github.com/kubesphere/kubekey/exp/cluster-api-provider-kubekey/test/helpers/envtest"
 )
 
-// These tests use Ginkgo (BDD-style Go testing framework). Refer to
-// http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
+const (
+	timeout = time.Second * 30
+)
 
-// var cfg *rest.Config
-var k8sClient client.Client
-var testEnv *envtest.Environment
+var (
+	env        *envtest.Environment
+	ctx        = ctrl.SetupSignalHandler()
+	fakeScheme = runtime.NewScheme()
+)
 
-func TestAPIs(t *testing.T) {
-	RegisterFailHandler(Fail)
-
-	RunSpecsWithDefaultAndCustomReporters(t,
-		"Controller Suite",
-		[]Reporter{printer.NewlineReporter{}})
+func init() {
+	_ = clientgoscheme.AddToScheme(fakeScheme)
+	_ = clusterv1.AddToScheme(fakeScheme)
+	_ = infrav1.AddToScheme(fakeScheme)
 }
 
-var _ = BeforeSuite(func() {
-	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
+func TestMain(m *testing.M) {
+	setupReconcilers := func(ctx context.Context, mgr ctrl.Manager) {
+		log := ctrl.Log.WithName("remote").WithName("ClusterCacheTracker")
+		tracker, err := remote.NewClusterCacheTracker(
+			mgr,
+			remote.ClusterCacheTrackerOptions{
+				Log:     &log,
+				Indexes: remote.DefaultIndexes,
+			},
+		)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create cluster cache tracker: %v", err))
+		}
 
-	By("bootstrapping test environment")
-	testEnv = &envtest.Environment{
-		CRDDirectoryPaths:     []string{filepath.Join("..", "config", "crd", "bases")},
-		ErrorIfCRDPathMissing: true,
+		if err := (&KKClusterReconciler{
+			Client:   mgr.GetClient(),
+			Recorder: mgr.GetEventRecorderFor("kkcluster-controller"),
+			Scheme:   mgr.GetScheme(),
+		}).SetupWithManager(ctx, mgr, controller.Options{MaxConcurrentReconciles: 1}); err != nil {
+			panic(fmt.Sprintf("Failed to start ClusterReconciler: %v", err))
+		}
+		if err := (&KKMachineReconciler{
+			Client:   mgr.GetClient(),
+			Recorder: mgr.GetEventRecorderFor("kkmachine-controller"),
+			Scheme:   mgr.GetScheme(),
+			Tracker:  tracker,
+		}).SetupWithManager(ctx, mgr, controller.Options{MaxConcurrentReconciles: 1}); err != nil {
+			panic(fmt.Sprintf("Failed to start MachineReconciler: %v", err))
+		}
 	}
 
-	cfg, err := testEnv.Start()
-	Expect(err).NotTo(HaveOccurred())
-	Expect(cfg).NotTo(BeNil())
+	SetDefaultEventuallyPollingInterval(100 * time.Millisecond)
+	SetDefaultEventuallyTimeout(timeout)
 
-	err = infrav1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-
-	//+kubebuilder:scaffold:scheme
-
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
-	Expect(err).NotTo(HaveOccurred())
-	Expect(k8sClient).NotTo(BeNil())
-
-}, 60)
-
-var _ = AfterSuite(func() {
-	By("tearing down the test environment")
-	err := testEnv.Stop()
-	Expect(err).NotTo(HaveOccurred())
-})
+	os.Exit(envtest.Run(ctx, envtest.RunInput{
+		M:                m,
+		SetupEnv:         func(e *envtest.Environment) { env = e },
+		SetupReconcilers: setupReconcilers,
+	}))
+}
