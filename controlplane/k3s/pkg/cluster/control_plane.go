@@ -109,7 +109,7 @@ func (c *ControlPlane) Version() *string {
 	return &c.KCP.Spec.Version
 }
 
-// MachineInfrastructureTemplateRef returns the KubeadmControlPlane's infrastructure template for Machines.
+// MachineInfrastructureTemplateRef returns the K3sControlPlane's infrastructure template for Machines.
 func (c *ControlPlane) MachineInfrastructureTemplateRef() *corev1.ObjectReference {
 	return &c.KCP.Spec.MachineTemplate.InfrastructureRef
 }

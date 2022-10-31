@@ -113,7 +113,7 @@ func TestE2E(t *testing.T) {
 		defer w.Close()
 	}
 
-	RunSpecs(t, "capi-e2e")
+	RunSpecs(t, "capkk-e2e")
 }
 
 // Using a SynchronizedBeforeSuite for controlling how to create resources shared across ParallelNodes (~ginkgo threads).

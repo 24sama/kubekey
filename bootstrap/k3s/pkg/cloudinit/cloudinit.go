@@ -48,11 +48,12 @@ type BaseUserData struct {
 func (input *BaseUserData) prepare() error {
 	input.Header = cloudConfigHeader
 	input.WriteFiles = append(input.WriteFiles, input.AdditionalFiles...)
-	k3sScriptFile, err := generateBootstrapScript(input)
-	if err != nil {
-		return errors.Wrap(err, "failed to generate user data for machine install k3s")
-	}
-	input.WriteFiles = append(input.WriteFiles, *k3sScriptFile)
+	input.WriteFiles = append(input.WriteFiles, input.ConfigFile)
+	//k3sScriptFile, err := generateBootstrapScript(input)
+	//if err != nil {
+	//	return errors.Wrap(err, "failed to generate user data for machine install k3s")
+	//}
+	//input.WriteFiles = append(input.WriteFiles, *k3sScriptFile)
 	input.SentinelFileCommand = sentinelFileCommand
 	return nil
 }
@@ -92,7 +93,7 @@ func generateBootstrapScript(input interface{}) (*bootstrapv1.File, error) {
 	}
 	return &bootstrapv1.File{
 		Path:        "/usr/local/bin/k3s-install.sh",
-		Owner:       "root",
+		Owner:       "root:root",
 		Permissions: "0755",
 		Content:     string(k3sScript),
 	}, nil

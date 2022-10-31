@@ -377,6 +377,14 @@ func (r *K3sConfigReconciler) handleClusterNotInitialized(ctx context.Context, s
 func (r *K3sConfigReconciler) joinWorker(ctx context.Context, scope *Scope) (ctrl.Result, error) {
 	scope.Info("Creating BootstrapData for the worker node")
 
+	machine := &clusterv1.Machine{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(scope.ConfigOwner.Object, machine); err != nil {
+		return ctrl.Result{}, errors.Wrapf(err, "cannot convert %s to Machine", scope.ConfigOwner.GetKind())
+	}
+
+	// injects into config.ClusterConfiguration values from top level object
+	r.reconcileTopLevelObjectSettings(ctx, scope.Cluster, machine, scope.Config)
+
 	// Ensure that agentConfiguration is properly set for joining node on the current cluster.
 	if res, err := r.reconcileDiscovery(ctx, scope.Cluster, scope.Config); err != nil {
 		return ctrl.Result{}, err
@@ -384,7 +392,7 @@ func (r *K3sConfigReconciler) joinWorker(ctx context.Context, scope *Scope) (ctr
 		return res, nil
 	}
 
-	joinWorkerData, err := k3stypes.MarshalJoinAgentConfiguration(scope.Config.Spec.AgentConfiguration)
+	joinWorkerData, err := k3stypes.MarshalJoinAgentConfiguration(&scope.Config.Spec)
 	if err != nil {
 		scope.Error(err, "Failed to marshal join configuration")
 		return ctrl.Result{}, err
@@ -436,6 +444,14 @@ func (r *K3sConfigReconciler) joinControlplane(ctx context.Context, scope *Scope
 		scope.Config.Spec.Cluster = &infrabootstrapv1.Cluster{}
 	}
 
+	machine := &clusterv1.Machine{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(scope.ConfigOwner.Object, machine); err != nil {
+		return ctrl.Result{}, errors.Wrapf(err, "cannot convert %s to Machine", scope.ConfigOwner.GetKind())
+	}
+
+	// injects into config.ClusterConfiguration values from top level object
+	r.reconcileTopLevelObjectSettings(ctx, scope.Cluster, machine, scope.Config)
+
 	// Ensure that joinConfiguration.Discovery is properly set for joining node on the current cluster.
 	if res, err := r.reconcileDiscovery(ctx, scope.Cluster, scope.Config); err != nil {
 		return ctrl.Result{}, err
@@ -443,7 +459,7 @@ func (r *K3sConfigReconciler) joinControlplane(ctx context.Context, scope *Scope
 		return res, nil
 	}
 
-	joinData, err := k3stypes.MarshalJoinServerConfiguration(scope.Config.Spec.ServerConfiguration)
+	joinData, err := k3stypes.MarshalJoinServerConfiguration(&scope.Config.Spec)
 	if err != nil {
 		scope.Error(err, "Failed to marshal join configuration")
 		return ctrl.Result{}, err
